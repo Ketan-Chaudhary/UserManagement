@@ -101,6 +101,7 @@ function UserDetails({ users, setUsers }) {
           name="name"
           value={user.name}
           onChange={handleChange}
+          readOnly
           className={`mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-300 ${
             errors.name ? "border-red-500" : ""
           }`}
