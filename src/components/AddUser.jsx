@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function AddUser({ onUserAdded }) {
-  // Accept onUserAdded prop
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -13,7 +12,6 @@ function AddUser({ onUserAdded }) {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  // Validation function
   const validateForm = () => {
     let formErrors = {};
     if (!user.name || user.name.length < 3) {
@@ -31,15 +29,15 @@ function AddUser({ onUserAdded }) {
     return formErrors;
   };
 
-  // Handle form submission
   const handleSubmit = (event) => {
     event.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
     } else {
+      // Send POST request to JSON Server
       axios
-        .post("https://jsonplaceholder.typicode.com/users", user)
+        .post("http://localhost:5000/users", user) // Point to the JSON Server endpoint
         .then((response) => {
           toast.success("User created successfully!");
           onUserAdded(response.data); // Call the prop to update users list
@@ -51,7 +49,6 @@ function AddUser({ onUserAdded }) {
     }
   };
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
@@ -109,7 +106,7 @@ function AddUser({ onUserAdded }) {
 
       <button
         type="submit"
-        className="w-full bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600"
+        className="w-full bg-blue-500 text-white p-2 rounded-lg mt-4 hover:bg-blue-600 transition"
       >
         Add User
       </button>

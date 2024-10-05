@@ -9,22 +9,43 @@ function Home({ users, setUsers }) {
   const [searchTerm, setSearchTerm] = React.useState("");
 
   useEffect(() => {
-    if (users.length === 0) {
-      fetchUsers();
-    } else {
-      setLoading(false); // If users are already loaded, set loading to false
-    }
-  }, [users]);
+    fetchPlaceholderUsers();
+    fetchServerUsers();
+  }, []);
 
-  const fetchUsers = () => {
+  const fetchPlaceholderUsers = () => {
     axios
       .get("https://jsonplaceholder.typicode.com/users")
       .then((response) => {
-        setUsers(response.data);
+        const placeholderUsers = response.data;
+        setUsers((prevUsers) => {
+          const existingUserIds = new Set(prevUsers.map((user) => user.id));
+          const newUsers = placeholderUsers.filter(
+            (user) => !existingUserIds.has(user.id)
+          );
+          return [...prevUsers, ...newUsers]; // Combine without duplicates
+        });
+      })
+      .catch(() => {
+        toast.error("Failed to fetch users from JSONPlaceholder!");
+      });
+  };
+
+  const fetchServerUsers = () => {
+    axios
+      .get("http://localhost:5000/users")
+      .then((response) => {
+        setUsers((prevUsers) => {
+          const existingUserIds = new Set(prevUsers.map((user) => user.id));
+          const newUsers = response.data.filter(
+            (user) => !existingUserIds.has(user.id)
+          );
+          return [...prevUsers, ...newUsers]; // Combine without duplicates
+        });
         setLoading(false);
       })
       .catch(() => {
-        toast.error("Failed to fetch users! Please try again.");
+        toast.error("Failed to fetch users from JSON Server!");
         setError("Failed to fetch users");
         setLoading(false);
       });
@@ -32,15 +53,21 @@ function Home({ users, setUsers }) {
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      axios
-        .delete(`https://jsonplaceholder.typicode.com/users/${id}`)
-        .then(() => {
-          toast.success("User deleted successfully!");
-          setUsers(users.filter((user) => user.id !== id)); // Remove deleted user
-        })
-        .catch(() => {
-          toast.error("Error deleting user! Please try again.");
-        });
+      if (
+        users.some((user) => user.id === id && !user.hasOwnProperty("username"))
+      ) {
+        axios
+          .delete(`http://localhost:5000/users/${id}`)
+          .then(() => {
+            toast.success("User deleted successfully!");
+            setUsers(users.filter((user) => user.id !== id));
+          })
+          .catch(() => {
+            toast.error("Error deleting user! Please try again.");
+          });
+      } else {
+        toast.error("You cannot delete users from JSONPlaceholder!");
+      }
     }
   };
 
@@ -48,18 +75,13 @@ function Home({ users, setUsers }) {
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="text-center py-10">Loading...</div>; // Centered loading message
+  if (loading) return <div className="text-center py-10">Loading...</div>;
   if (error)
     return <div className="text-red-500 text-center py-10">{error}</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-4xl font-bold mb-6 text-center">User Management</h1>
-      <p className="text-red-500 mb-2">
-        Note: In JSONPlaceholder API changes are not persisted permanently. So
-        if you add or delete a user, it will not be saved permanently. Hence we
-        can not Update & View the user details which we add manually.
-      </p>
       <Link
         to="/add-user"
         className="mb-6 inline-block bg-green-500 text-white py-3 px-6 rounded-lg shadow hover:bg-green-600 transition"

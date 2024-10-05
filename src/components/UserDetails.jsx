@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-function UserDetails() {
-  const { id } = useParams();
+function UserDetails({ users, setUsers }) {
+  const { id } = useParams(); // Get user ID from the URL parameters
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -15,17 +15,26 @@ function UserDetails() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get(`https://jsonplaceholder.typicode.com/users/${id}`)
-      .then((response) => {
-        setUser(response.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        toast.error("Error fetching user details.");
-        setLoading(false);
-      });
-  }, [id]);
+    // Find user from the local state
+    const foundUser = users.find((u) => u.id === Number(id));
+
+    if (foundUser) {
+      setUser(foundUser); // Set the user state if found
+      setLoading(false);
+    } else {
+      // Attempt to fetch user from JSON Server if not found
+      axios
+        .get(`http://localhost:5000/users/${id}`)
+        .then((response) => {
+          setUser(response.data); // Set user state with fetched data
+          setLoading(false);
+        })
+        .catch(() => {
+          toast.error("User not found.");
+          navigate("/"); // Redirect to home if user not found
+        });
+    }
+  }, [id, users, navigate]);
 
   const validateForm = () => {
     let formErrors = {};
@@ -50,15 +59,23 @@ function UserDetails() {
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
     } else {
-      axios
-        .put(`https://jsonplaceholder.typicode.com/users/${id}`, user)
-        .then(() => {
-          toast.success("User updated successfully!");
-          navigate("/"); // Redirect to home page after success
-        })
-        .catch(() => {
-          toast.error("Error updating user!");
-        });
+      if (!user.hasOwnProperty("username")) {
+        // User is from JSON Server
+        axios
+          .put(`http://localhost:5000/users/${id}`, user)
+          .then(() => {
+            toast.success("User updated successfully!");
+            setUsers((prevUsers) =>
+              prevUsers.map((u) => (u.id === user.id ? user : u))
+            ); // Update user in local state
+            navigate("/"); // Redirect to home page after success
+          })
+          .catch(() => {
+            toast.error("Error updating user!");
+          });
+      } else {
+        toast.error("You cannot update users from JSONPlaceholder!");
+      }
     }
   };
 

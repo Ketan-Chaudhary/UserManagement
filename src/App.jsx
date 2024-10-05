@@ -17,14 +17,12 @@ function App() {
     <>
       <ToastContainer />
       <Routes>
-        <Route path="/" element={<Home users={users} setUsers={setUsers} />} />{" "}
-        {/* Pass users and setUsers */}
-        <Route path="/user/:id" element={<UserDetails />} />
+        <Route path="/" element={<Home users={users} setUsers={setUsers} />} />
         <Route
-          path="/add-user"
-          element={<AddUser onUserAdded={addUser} />}
-        />{" "}
-        {/* Pass addUser function */}
+          path="/user/:id"
+          element={<UserDetails users={users} setUsers={setUsers} />}
+        />
+        <Route path="/add-user" element={<AddUser onUserAdded={addUser} />} />
       </Routes>
     </>
   );
