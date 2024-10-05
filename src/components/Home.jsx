@@ -55,7 +55,11 @@ function Home({ users, setUsers }) {
   return (
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-4xl font-bold mb-6 text-center">User Management</h1>
-
+      <p className="text-red-500 mb-2">
+        Note: In JSONPlaceholder API changes are not persisted permanently. So
+        if you add or delete a user, it will not be saved permanently. Hence we
+        can not Update & View the user details which we add manually.
+      </p>
       <Link
         to="/add-user"
         className="mb-6 inline-block bg-green-500 text-white py-3 px-6 rounded-lg shadow hover:bg-green-600 transition"
